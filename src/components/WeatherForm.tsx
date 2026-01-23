@@ -5,6 +5,7 @@ import { InputSchema, type FormInput } from "../lib/schema";
 /**
  * WeatherForm - renders a simple search form for ZIP code or address.
  *
+ * @param props - Component properties.
  * @param props.onSearch - called with validated FormInput when the form is submitted.
  * @param props.loading - disables submission while true.
  */
