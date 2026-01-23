@@ -23,4 +23,10 @@ describe("worker InputSchema", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it("rejects address longer than 200 characters", () => {
+    const longAddress = "A".repeat(201);
+    const result = InputSchema.safeParse({ address: longAddress });
+    expect(result.success).toBe(false);
+  });
 });
