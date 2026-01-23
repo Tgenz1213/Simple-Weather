@@ -17,9 +17,11 @@ interface ForecastPeriod {
  * ThreeDayForecast - displays up to three forecast periods.
  * Accepts raw API response in `data` and prefers daytime periods when available.
  *
- * @param data - raw forecast response from weather API
+ * @param props - Component props.
+ * @param props.data - Raw forecast response from weather API.
  */
-export function ThreeDayForecast({ data }: { data: unknown }) {
+export function ThreeDayForecast(props: { data: unknown }) {
+  const { data } = props;
   const periods =
     (data as unknown as { properties?: { periods?: ForecastPeriod[] } })
       ?.properties?.periods ?? [];
