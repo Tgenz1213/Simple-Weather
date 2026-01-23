@@ -7,6 +7,11 @@ describe("worker InputSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects zip longer than 10 characters", () => {
+    const result = InputSchema.safeParse({ zip: "12345678901" });
+    expect(result.success).toBe(false);
+  });
+
   it("accepts zip with 5 characters", () => {
     const result = InputSchema.safeParse({ zip: "12345" });
     expect(result.success).toBe(true);
