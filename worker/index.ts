@@ -2,8 +2,8 @@ import { z } from "zod";
 import { Redis } from "@upstash/redis";
 
 const InputSchema = z.object({
-  zip: z.string().optional(),
-  address: z.string().optional(),
+  zip: z.string().min(5).max(10).optional(),
+  address: z.string().max(200).optional(),
   lat: z.number().optional(),
   lon: z.number().optional(),
 });
