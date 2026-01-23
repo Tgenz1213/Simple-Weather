@@ -3,10 +3,10 @@ import type { ZodIssue } from "zod";
 import { InputSchema, type FormInput } from "../lib/schema";
 
 /**
- * ****************************************************************************
- * WEATHER FORM
- * Renders the input form for ZIP / address and handles validation.
- * ****************************************************************************
+ * WeatherForm - renders a simple search form for ZIP code or address.
+ *
+ * @param props.onSearch - called with validated FormInput when the form is submitted.
+ * @param props.loading - disables submission while true.
  */
 export function WeatherForm(props: {
   onSearch: (payload: FormInput) => Promise<void> | void;

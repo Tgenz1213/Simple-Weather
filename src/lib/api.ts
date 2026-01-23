@@ -1,7 +1,14 @@
 import type { FormInput } from "./schema";
 
+/**
+ * WeatherResponse - envelope returned by the worker API.
+ */
 export type WeatherResponse = { source: string; data: unknown };
 
+/**
+ * fetchWeather - POSTs `payload` to the worker API and returns the parsed response.
+ * Throws an Error on network failure or non-2xx responses.
+ */
 export async function fetchWeather(
   payload: FormInput,
 ): Promise<WeatherResponse> {

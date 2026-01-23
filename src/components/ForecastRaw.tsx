@@ -1,8 +1,8 @@
 /**
- * ****************************************************************************
- * FORECAST RAW
- * Renders the raw forecast JSON returned by the API.
- * ****************************************************************************
+ * ForecastRaw - renders a raw forecast payload for debugging or inspection.
+ *
+ * @param source - source label (e.g. "cache" or "remote").
+ * @param data - raw forecast payload from the API.
  */
 export function ForecastRaw({
   source,
