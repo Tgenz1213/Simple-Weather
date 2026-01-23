@@ -1,0 +1,33 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "tags": ["-lintignore"],
+  "workspaces": {
+    "./": {
+      "entry": ["src/main.tsx"],
+      "project": ["src/**/*.{ts,tsx,js,jsx}"],
+      "ignore": [
+        "public/**",
+        "worker/**",
+        "index.html",
+        "src/assets/**",
+        "src/**/*.css",
+        "**/*.d.ts",
+        "vite-env.d.ts",
+        "worker-configuration.d.ts"
+      ]
+    }
+  },
+  "ignoreFiles": [
+    "public/**",
+    "worker/**",
+    "index.html",
+    "vite-env.d.ts",
+    "worker-configuration.d.ts",
+    "src/setupTests.ts"
+  ],
+  "ignoreIssues": {
+    "src/App.tsx": ["files"],
+    "worker/**": ["exports"],
+    "src/components/ForecastRaw.tsx": ["files"]
+  }
+}
