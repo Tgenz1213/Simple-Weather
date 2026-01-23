@@ -28,7 +28,10 @@ export function WeatherForm(props: {
       const msg = parsed.error.issues
         .map((s: ZodIssue) => {
           const m = s.message;
-          return m.replace(/Too small: expected string to have >=(\d+) characters/i, "must be at least $1 characters");
+          return m.replace(
+            /Too small: expected string to have >=(\d+) characters/i,
+            "must be at least $1 characters",
+          );
         })
         .join(", ");
       setError(msg);
@@ -56,7 +59,9 @@ export function WeatherForm(props: {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Address (optional)</label>
+        <label className="block text-sm font-medium mb-1">
+          Address (optional)
+        </label>
         <input
           value={address}
           onChange={(e) => setAddress(e.target.value)}

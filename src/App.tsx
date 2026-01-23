@@ -25,7 +25,10 @@ function AppContent() {
     <div className="app-root p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Simple Weather</h1>
 
-      <WeatherForm onSearch={handleSearch} loading={mutation.status === "pending"} />
+      <WeatherForm
+        onSearch={handleSearch}
+        loading={mutation.status === "pending"}
+      />
 
       {mutation.isSuccess && (
         <>
@@ -36,7 +39,9 @@ function AppContent() {
       {mutation.status === "success" && !mutation.data && (
         <div className="text-sm text-green-700">Fetched</div>
       )}
-      <a href="https://www.flaticon.com/free-icons/sun" title="sun icons">Sun icons created by Freepik - Flaticon</a>
+      <a href="https://www.flaticon.com/free-icons/sun" title="sun icons">
+        Sun icons created by Freepik - Flaticon
+      </a>
     </div>
   );
 }
