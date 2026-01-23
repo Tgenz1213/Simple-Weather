@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { Redis } from "@upstash/redis";
 
-// @internal
 export const InputSchema = z.object({
   zip: z.string().min(5).max(10).optional(),
   address: z.string().max(200).optional(),
@@ -71,17 +70,19 @@ export default {
       } else if (input.zip) {
         // Use Zippopotamus for quick zip->latlon
         try {
-          const res = await fetch(`https://api.zippopotam.us/us/${encodeURIComponent(input.zip)}`);
-            if (res.ok) {
-              const j = (await res.json()) as {
-                places?: Array<{ latitude?: string; longitude?: string }>;
-              };
-              const place = j.places && j.places[0];
-              if (place?.latitude && place?.longitude) {
-                lat = Number(place.latitude);
-                lon = Number(place.longitude);
-              }
+          const res = await fetch(
+            `https://api.zippopotam.us/us/${encodeURIComponent(input.zip)}`,
+          );
+          if (res.ok) {
+            const j = (await res.json()) as {
+              places?: Array<{ latitude?: string; longitude?: string }>;
+            };
+            const place = j.places && j.places[0];
+            if (place?.latitude && place?.longitude) {
+              lat = Number(place.latitude);
+              lon = Number(place.longitude);
             }
+          }
         } catch {
           // continue on error
         }
@@ -100,8 +101,14 @@ export default {
                 }>;
               };
             };
-            const coords = j.result && j.result.addressMatches && j.result.addressMatches[0];
-            if (coords && coords.coordinates && typeof coords.coordinates.x === "number" && typeof coords.coordinates.y === "number") {
+            const coords =
+              j.result && j.result.addressMatches && j.result.addressMatches[0];
+            if (
+              coords &&
+              coords.coordinates &&
+              typeof coords.coordinates.x === "number" &&
+              typeof coords.coordinates.y === "number"
+            ) {
               lat = coords.coordinates.y;
               lon = coords.coordinates.x;
             }
@@ -120,21 +127,32 @@ export default {
         const headers = {
           // Weather.gov requires a User-Agent identifying the client; include an innocuous identifier.
           "User-Agent": "Simple-Weather (https://github.com/)",
-          "Accept": "application/geo+json,application/json",
+          Accept: "application/geo+json,application/json",
         } as Record<string, string>;
 
-        const pointsRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`, { headers });
+        const pointsRes = await fetch(
+          `https://api.weather.gov/points/${lat},${lon}`,
+          { headers },
+        );
         if (!pointsRes.ok) {
-          return jsonResponse({ error: `weather API error (${pointsRes.status})` }, 502);
+          return jsonResponse(
+            { error: `weather API error (${pointsRes.status})` },
+            502,
+          );
         }
-        const points = (await pointsRes.json()) as { properties?: { forecast?: string } };
+        const points = (await pointsRes.json()) as {
+          properties?: { forecast?: string };
+        };
         const forecastUrl = points.properties?.forecast;
         if (!forecastUrl) {
           return jsonResponse({ error: "no forecast available" }, 502);
         }
         const forecastRes = await fetch(forecastUrl, { headers });
         if (!forecastRes.ok) {
-          return jsonResponse({ error: `forecast fetch failed (${forecastRes.status})` }, 502);
+          return jsonResponse(
+            { error: `forecast fetch failed (${forecastRes.status})` },
+            502,
+          );
         }
         const forecast = await forecastRes.json();
 
@@ -150,7 +168,10 @@ export default {
         return jsonResponse({ source: "remote", data: forecast });
       } catch {
         // give more context for unexpected failures
-        return jsonResponse({ error: "unexpected error fetching forecast" }, 500);
+        return jsonResponse(
+          { error: "unexpected error fetching forecast" },
+          500,
+        );
       }
     }
 
