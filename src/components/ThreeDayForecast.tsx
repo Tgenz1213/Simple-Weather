@@ -1,3 +1,6 @@
+/**
+ * ForecastPeriod - forecast item returned by weather API.
+ */
 interface ForecastPeriod {
   name: string;
   startTime: string;
@@ -10,13 +13,19 @@ interface ForecastPeriod {
   isDaytime?: boolean;
 }
 
-export function ThreeDayForecast({ data }: { data: unknown }) {
-  // Use an explicit but permissive cast for external API data
+/**
+ * ThreeDayForecast - displays up to three forecast periods.
+ * Accepts raw API response in `data` and prefers daytime periods when available.
+ *
+ * @param props - Component props.
+ * @param props.data - Raw forecast response from weather API.
+ */
+export function ThreeDayForecast(props: { data: unknown }) {
+  const { data } = props;
   const periods =
     (data as unknown as { properties?: { periods?: ForecastPeriod[] } })
       ?.properties?.periods ?? [];
 
-  // Prefer daytime periods (isDaytime true) and fall back to first periods
   const daytime = periods
     .filter((p: ForecastPeriod) => p.isDaytime)
     .slice(0, 3);

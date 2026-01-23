@@ -8,11 +8,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const queryClient = new QueryClient();
 
 /**
- * ****************************************************************************
- * APP
- * Minimal top-level component: renders header, form, and forecast display.
- * All logic is moved to smaller components / hooks.
- * ****************************************************************************
+ * AppContent - top-level application UI.
+ * Renders header, search form, and forecast display and wires `useWeather`.
  */
 function AppContent() {
   const mutation = useWeather();

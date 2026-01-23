@@ -8,6 +8,14 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
+/**
+ * Worker fetch handler for POST /api/weather.
+ *
+ * Validates input with `InputSchema`, resolves latitude/longitude from
+ * provided coordinates, ZIP (Zippopotam.us) or address (Census geocoder),
+ * then queries weather.gov for a forecast. If Upstash Redis is configured,
+ * responses are cached for 1 hour and served from cache when available.
+ */
 export default {
   async fetch(request: Request, env: Env) {
     const url = new URL(request.url);
@@ -20,10 +28,8 @@ export default {
       }
       const input = parse.data;
 
-      // Build a cache key
       const cacheKey = `weather:${input.zip ?? input.address ?? `${input.lat},${input.lon}`}`;
 
-      // init redis if available
       let redis: Redis | null = null;
       try {
         type UpstashEnv = Env & {
@@ -41,7 +47,6 @@ export default {
         redis = null;
       }
 
-      // Try cached
       try {
         if (redis) {
           const cached = await redis.get(cacheKey);
@@ -50,10 +55,9 @@ export default {
           }
         }
       } catch {
-        // continue if cache fails
+        // ignore cache errors and continue
       }
 
-      // Resolve lat/lon
       let lat: number | null = null;
       let lon: number | null = null;
 
@@ -61,7 +65,6 @@ export default {
         lat = input.lat;
         lon = input.lon;
       } else if (input.zip) {
-        // Use Zippopotamus for quick zip->latlon
         try {
           const res = await fetch(
             `https://api.zippopotam.us/us/${encodeURIComponent(input.zip)}`,
@@ -77,10 +80,9 @@ export default {
             }
           }
         } catch {
-          // continue on error
+          // ignore geocoding errors
         }
       } else if (input.address) {
-        // Use Census geocoder
         try {
           const q = encodeURIComponent(input.address);
           const res = await fetch(
@@ -107,7 +109,7 @@ export default {
             }
           }
         } catch {
-          // continue on error
+          // ignore geocoding errors
         }
       }
 
@@ -115,10 +117,9 @@ export default {
         return jsonResponse({ error: "Unable to resolve location" }, 400);
       }
 
-      // Call weather.gov points API
       try {
         const headers = {
-          // Weather.gov requires a User-Agent identifying the client; include an innocuous identifier.
+          // Weather.gov requires a User-Agent header
           "User-Agent": "Simple-Weather (https://github.com/)",
           Accept: "application/geo+json,application/json",
         } as Record<string, string>;
@@ -149,7 +150,6 @@ export default {
         }
         const forecast = await forecastRes.json();
 
-        // Cache result for 1 hour if redis available
         try {
           if (redis) {
             await redis.set(cacheKey, forecast, { ex: 60 * 60 });
@@ -160,7 +160,6 @@ export default {
 
         return jsonResponse({ source: "remote", data: forecast });
       } catch {
-        // give more context for unexpected failures
         return jsonResponse(
           { error: "unexpected error fetching forecast" },
           500,
