@@ -13,7 +13,9 @@ describe("worker InputSchema", () => {
   });
 
   it("accepts missing zip when address present", () => {
-    const result = InputSchema.safeParse({ address: "1600 Pennsylvania Ave NW" });
+    const result = InputSchema.safeParse({
+      address: "1600 Pennsylvania Ave NW",
+    });
     expect(result.success).toBe(true);
   });
 });
