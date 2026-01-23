@@ -1,67 +1,132 @@
 version: "3"
 
 # Taskfile for Simple-Weather project
-# - `task dev` ensures a Redis container is running and starts the dev server (npm run dev)
-# - `task ensure-redis` ensures the container exists and is running (used by `task dev`)
-# - `task stop-redis` removes the container
-# - `task logs-redis` follows container logs
+# - `task dev` ensures SRH (serverless-redis-http) container is running and starts the dev server (npm run dev)
+# - `task env-setup` creates `.env.local` from `.env.example` and prompts for values
+# - `task ensure-srh` ensures the SRH container exists and is running (reads values from `.env.local`)
+# - `task stop-srh` removes the SRH container
+# - `task logs-srh` follows SRH container logs
 
 vars:
-  redis_name: sw-redis
-  redis_image: redis:7-alpine
-  redis_port: 6379
+  srh_name: sw-srh
+  srh_image: hiett/serverless-redis-http:latest
+  srh_port: 8080
+  # fallback defaults if .env.local is missing values
+  srh_token: your_token_here
+  srh_connection_string: "redis://localhost:6379"
 
+# Interactive task to create .env.local from .env.example
 tasks:
+  env-setup:
+    desc: "Create .env.local from .env.example interactively (runs platform-specific script)"
+    cmds:
+      - |-
+        echo "Detecting available shell to run the environment setup script..."
+        if command -v pwsh >/dev/null 2>&1; then
+          echo "Found PowerShell Core (pwsh); running setup-env.ps1"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./setup-env.ps1
+        elif command -v powershell >/dev/null 2>&1; then
+          echo "Found Windows PowerShell; running setup-env.ps1"
+          powershell -NoProfile -ExecutionPolicy Bypass -File ./setup-env.ps1
+        elif command -v sh >/dev/null 2>&1; then
+          echo "Found sh; running setup-env.sh"
+          sh ./setup-env.sh
+        else
+          echo "No suitable shell found. Please run ./setup-env.sh (POSIX) or ./setup-env.ps1 (PowerShell) manually." >&2
+          exit 1
+        fi
+
   dev:
-    desc: "Start redis if needed and run dev server (npm run dev)"
+    desc: "Start SRH if needed and run dev server (npm run dev)"
     deps:
-      - ensure-redis
+      - ensure-srh
     cmds:
       - npm run dev
 
-  ensure-redis:
-    desc: "Ensure the Redis docker container is running and healthy"
+  ensure-srh:
+    desc: "Ensure the configured Redis backend is ready (SRH docker or Upstash), reads .env.local"
     cmds:
       - |-
-        echo "Checking for a running Docker container named '${redis_name}'..."
+        echo "Loading .env.local..."
+        if [ -f .env.local ]; then
+          set -a
+          . ./.env.local
+          set +a
+        else
+          echo ".env.local not found. Run 'task env-setup' to create it." >&2
+          exit 1
+        fi
+
+        # Normalize ENV_MODE; default to 'srh' for local development
+        mode=$(echo "${ENV_MODE:-srh}" | tr '[:upper:]' '[:lower:]')
+        if [ "$mode" = "development" ] || [ -z "$mode" ]; then
+          echo "ENV_MODE set to 'development' or empty — treating as 'srh' for local development."
+          mode=srh
+        fi
+
+        if [ "$mode" = "upstash" ]; then
+          echo "ENV_MODE=upstash: validating Upstash environment variables..."
+          if [ -z "${UPSTASH_REDIS_REST_URL}" ] || [ -z "${UPSTASH_REDIS_REST_TOKEN}" ]; then
+            echo "Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN in .env.local" >&2
+            echo "Run 'task env-setup' to configure Upstash variables." >&2
+            exit 1
+          fi
+          echo "Upstash variables present. Using Upstash at ${UPSTASH_REDIS_REST_URL}"
+          echo "No local SRH container will be started when using Upstash."
+          exit 0
+        fi
+
+        # Default to SRH behavior
+        port=${SRH_PORT:-${srh_port}}
+        token=${SRH_TOKEN:-${srh_token}}
+        conn=${SRH_CONNECTION_STRING:-${srh_connection_string}}
+
+        echo "ENV_MODE=${mode} — using local SRH. Proceeding to start SRH container '${srh_name}' on port ${port}..."
+
         # If already running, do nothing
-        if [ "$(docker ps --filter "name=${redis_name}" --filter "status=running" -q)" ]; then
-          echo "Redis container '${redis_name}' already running"
+        if [ "$(docker ps --filter "name=${srh_name}" --filter "status=running" -q)" ]; then
+          echo "SRH container '${srh_name}' already running"
         # If container exists but is stopped, start it
-        elif [ "$(docker ps -a --filter "name=${redis_name}" -q)" ]; then
-          echo "Found existing container '${redis_name}', starting it..."
-          docker start ${redis_name}
+        elif [ "$(docker ps -a --filter "name=${srh_name}" -q)" ]; then
+          echo "Found existing container '${srh_name}', starting it..."
+          docker start ${srh_name}
         # Otherwise create and run the container
         else
-          echo "Creating and starting redis container '${redis_name}' (image: ${redis_image})..."
-          docker run -d --name ${redis_name} -p ${redis_port}:6379 ${redis_image}
+          echo "Creating and starting SRH container '${srh_name}' (image: ${srh_image})..."
+          docker run -d -p ${port}:80 --name ${srh_name} \
+            -e SRH_MODE=env \
+            -e SRH_TOKEN="${token}" \
+            -e SRH_CONNECTION_STRING="${conn}" \
+            ${srh_image}
         fi
 
       - |-
-        echo "Waiting for Redis to accept connections (timeout 30s)..."
+        echo "If you are using the placeholder token 'your_token_here', please run 'task env-setup' to set a secure token." 
+        echo "Waiting for SRH to accept HTTP connections (timeout 30s)..."
         i=0
-        until docker exec ${redis_name} redis-cli ping 2>/dev/null | grep -q PONG; do
+        until curl -sS -f "http://localhost:${port}/" >/dev/null 2>&1; do
           i=$((i+1))
           if [ $i -ge 30 ]; then
-            echo "Timed out waiting for redis to be ready" >&2
+            echo "Timed out waiting for SRH to be ready" >&2
+            echo "Try 'task logs-srh' to inspect container logs." >&2
             exit 1
           fi
           sleep 1
         done
-        echo "Redis is ready."
+        echo "SRH is ready and responding on http://localhost:${port}/"
 
-  stop-redis:
-    desc: "Stop and remove the redis container (if present)"
+  stop-srh:
+    desc: "Stop and remove the SRH container (if present)"
     cmds:
       - |-
-        if [ "$(docker ps -a --filter "name=${redis_name}" -q)" ]; then
-          echo "Stopping and removing '${redis_name}'..."
-          docker rm -f ${redis_name} || true
+        if [ "$(docker ps -a --filter "name=${srh_name}" -q)" ]; then
+          echo "Stopping and removing '${srh_name}'..."
+          docker rm -f ${srh_name} || true
         else
-          echo "No redis container named '${redis_name}' found."
+          echo "No SRH container named '${srh_name}' found."
         fi
 
-  logs-redis:
-    desc: "Follow redis logs"
+  logs-srh:
+    desc: "Follow SRH logs"
     cmds:
-      - docker logs -f ${redis_name}
+      - docker logs -f ${srh_name}
