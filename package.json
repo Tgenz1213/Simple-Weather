@@ -1,33 +1,57 @@
 {
-	"name": "simple-weather",
-	"private": true,
-	"version": "0.0.0",
-	"type": "module",
-	"scripts": {
-		"dev": "vite",
-		"build": "tsc -b && vite build",
-		"lint": "eslint .",
-		"preview": "npm run build && vite preview",
-		"deploy": "npm run build && wrangler deploy",
-		"cf-typegen": "wrangler types"
-	},
-	"dependencies": {
-		"react": "^19.1.1",
-		"react-dom": "^19.1.1"
-	},
-	"devDependencies": {
-		"@cloudflare/vite-plugin": "^1.21.2",
-		"@eslint/js": "^9.33.0",
-		"@types/react": "^19.1.10",
-		"@types/react-dom": "^19.1.7",
-		"@vitejs/plugin-react-swc": "^4.0.0",
-		"eslint": "^9.33.0",
-		"eslint-plugin-react-hooks": "^5.2.0",
-		"eslint-plugin-react-refresh": "^0.4.20",
-		"globals": "^16.3.0",
-		"typescript": "~5.8.3",
-		"typescript-eslint": "^8.39.1",
-		"vite": "^7.1.2",
-		"wrangler": "^4.60.0"
-	}
+  "name": "simple-weather",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "npm run eslint && npm run stylelint",
+    "eslint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "stylelint": "stylelint '**/*.{css,scss}'",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "format": "prettier --write .",
+    "preview": "npm run build && vite preview",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "knip": "knip",
+    "knip:production": "knip --production",
+    "prettier": "prettier --write .",
+    "setup": "echo 'Run the install commands in README or use the CLI to install deps'"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.20",
+    "@upstash/redis": "^1.36.1",
+    "@vitest/coverage-v8": "^4.0.18",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwindcss": "^4.1.18",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.21.2",
+    "@eslint/js": "^9.39.2",
+    "@tailwindcss/vite": "^4.1.18",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/jsdom": "^27.0.0",
+    "@types/node": "^25.0.10",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react-swc": "^4.0.0",
+    "eslint": "^9.39.2",
+    "jsdom": "^27.4.0",
+    "knip": "^5.82.1",
+    "prettier": "3.8.1",
+    "stylelint": "^17.0.0",
+    "stylelint-config-standard": "^40.0.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.53.1",
+    "vite": "^7.1.2",
+    "vitest": "^4.0.18",
+    "wrangler": "^4.60.0"
+  }
 }
