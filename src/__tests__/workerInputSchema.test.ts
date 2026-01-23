@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { InputSchema } from "../../worker/index";
+import { InputSchema } from "../lib/schema";
 
 describe("worker InputSchema", () => {
   it("rejects zip shorter than 5 characters", () => {
