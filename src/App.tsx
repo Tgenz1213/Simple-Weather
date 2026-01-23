@@ -1,58 +1,50 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import cloudflareLogo from './assets/Cloudflare_Logo.svg'
-import './App.css'
+import "./App.css";
+import { WeatherForm } from "./components/WeatherForm";
+import { ThreeDayForecast } from "./components/ThreeDayForecast";
+import { useWeather } from "./hooks/useWeather";
+import type { FormInput } from "./lib/schema";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-function App() {
-  const [count, setCount] = useState(0)
-  const [name, setName] = useState('unknown')
+const queryClient = new QueryClient();
+
+/**
+ * ****************************************************************************
+ * APP
+ * Minimal top-level component: renders header, form, and forecast display.
+ * All logic is moved to smaller components / hooks.
+ * ****************************************************************************
+ */
+function AppContent() {
+  const mutation = useWeather();
+
+  const handleSearch = async (payload: FormInput) => {
+    await mutation.mutateAsync(payload);
+  };
 
   return (
-    <>
-      <div>
-        <a href='https://vite.dev' target='_blank'>
-          <img src={viteLogo} className='logo' alt='Vite logo' />
-        </a>
-        <a href='https://react.dev' target='_blank'>
-          <img src={reactLogo} className='logo react' alt='React logo' />
-        </a>
-        <a href='https://workers.cloudflare.com/' target='_blank'>
-          <img src={cloudflareLogo} className='logo cloudflare' alt='Cloudflare logo' />
-        </a>
-      </div>
-      <h1>Vite + React + Cloudflare</h1>
-      <div className='card'>
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          aria-label='increment'
-        >
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <div className='card'>
-        <button
-          onClick={() => {
-            fetch('/api/')
-              .then((res) => res.json() as Promise<{ name: string }>)
-              .then((data) => setName(data.name))
-          }}
-          aria-label='get name'
-        >
-          Name from API is: {name}
-        </button>
-        <p>
-          Edit <code>worker/index.ts</code> to change the name
-        </p>
-      </div>
-      <p className='read-the-docs'>
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="app-root p-6 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Simple Weather</h1>
+
+      <WeatherForm onSearch={handleSearch} loading={mutation.status === "pending"} />
+
+      {mutation.isSuccess && (
+        <>
+          <ThreeDayForecast data={mutation.data?.data} />
+        </>
+      )}
+
+      {mutation.status === "success" && !mutation.data && (
+        <div className="text-sm text-green-700">Fetched</div>
+      )}
+      <a href="https://www.flaticon.com/free-icons/sun" title="sun icons">Sun icons created by Freepik - Flaticon</a>
+    </div>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
+  );
+}
