@@ -1,0 +1,67 @@
+version: "3"
+
+# Taskfile for Simple-Weather project
+# - `task dev` ensures a Redis container is running and starts the dev server (npm run dev)
+# - `task ensure-redis` ensures the container exists and is running (used by `task dev`)
+# - `task stop-redis` removes the container
+# - `task logs-redis` follows container logs
+
+vars:
+  redis_name: sw-redis
+  redis_image: redis:7-alpine
+  redis_port: 6379
+
+tasks:
+  dev:
+    desc: "Start redis if needed and run dev server (npm run dev)"
+    deps:
+      - ensure-redis
+    cmds:
+      - npm run dev
+
+  ensure-redis:
+    desc: "Ensure the Redis docker container is running and healthy"
+    cmds:
+      - |-
+        echo "Checking for a running Docker container named '${redis_name}'..."
+        # If already running, do nothing
+        if [ "$(docker ps --filter "name=${redis_name}" --filter "status=running" -q)" ]; then
+          echo "Redis container '${redis_name}' already running"
+        # If container exists but is stopped, start it
+        elif [ "$(docker ps -a --filter "name=${redis_name}" -q)" ]; then
+          echo "Found existing container '${redis_name}', starting it..."
+          docker start ${redis_name}
+        # Otherwise create and run the container
+        else
+          echo "Creating and starting redis container '${redis_name}' (image: ${redis_image})..."
+          docker run -d --name ${redis_name} -p ${redis_port}:6379 ${redis_image}
+        fi
+
+      - |-
+        echo "Waiting for Redis to accept connections (timeout 30s)..."
+        i=0
+        until docker exec ${redis_name} redis-cli ping 2>/dev/null | grep -q PONG; do
+          i=$((i+1))
+          if [ $i -ge 30 ]; then
+            echo "Timed out waiting for redis to be ready" >&2
+            exit 1
+          fi
+          sleep 1
+        done
+        echo "Redis is ready."
+
+  stop-redis:
+    desc: "Stop and remove the redis container (if present)"
+    cmds:
+      - |-
+        if [ "$(docker ps -a --filter "name=${redis_name}" -q)" ]; then
+          echo "Stopping and removing '${redis_name}'..."
+          docker rm -f ${redis_name} || true
+        else
+          echo "No redis container named '${redis_name}' found."
+        fi
+
+  logs-redis:
+    desc: "Follow redis logs"
+    cmds:
+      - docker logs -f ${redis_name}
