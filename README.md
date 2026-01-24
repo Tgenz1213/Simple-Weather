@@ -2,7 +2,7 @@
 
 A minimal web app that fetches U.S. National Weather Service forecasts (via api.weather.gov) for a provided location. The project demonstrates a small full-stack setup using a Vite + React frontend and a Cloudflare Worker backend. It includes a local SRH (Serverless Redis HTTP) option for Redis-backed caching and an option to use Upstash for remote Redis in production-like environments.
 
-Features
+## Features
 
 - Query NWS Weather.gov points API and display a three-day forecast.
 - Server-side caching using Redis (local SRH or Upstash).
