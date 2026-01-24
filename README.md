@@ -83,7 +83,3 @@ npm run deploy
 - If SRH doesn't start, run `task logs-srh` to inspect container output.
 - Ensure `EMAIL`/`VITE_EMAIL` is set (client will include `X-User-Email`).
 - If using Upstash, confirm `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are present in `.env.local`.
-
----
-
-If you'd like, I can add a short troubleshooting section (common issues & fixes) or a CI-friendly non-interactive setup task. Let me know which you'd prefer.
