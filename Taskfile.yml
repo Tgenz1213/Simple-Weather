@@ -78,29 +78,29 @@ tasks:
         fi
 
         # Default to SRH behavior
-        port=${SRH_PORT:-${srh_port}}
-        token=${SRH_TOKEN:-${srh_token}}
-        conn=${SRH_CONNECTION_STRING:-${srh_connection_string}}
-        email=${EMAIL:-${srh_email}}
+        port=${SRH_PORT:-${.SRH_PORT}}
+        token=${SRH_TOKEN:-${.SRH_TOKEN}}
+        conn=${SRH_CONNECTION_STRING:-${.SRH_CONNECTION_STRING}}
+        email=${EMAIL:-${.EMAIL}}
 
-        echo "ENV_MODE=${mode} — using local SRH. Proceeding to start SRH container '${srh_name}' on port ${port}..."
+        echo "ENV_MODE=${mode} — using local SRH. Proceeding to start SRH container '${.SRH_NAME}' on port ${port}..."
 
         # If already running, do nothing
-        if [ "$(docker ps --filter "name=${srh_name}" --filter "status=running" -q)" ]; then
-          echo "SRH container '${srh_name}' already running"
+        if [ "$(docker ps --filter "name=${.SRH_NAME}" --filter "status=running" -q)" ]; then
+          echo "SRH container '${.SRH_NAME}' already running"
         # If container exists but is stopped, start it
-        elif [ "$(docker ps -a --filter "name=${srh_name}" -q)" ]; then
-          echo "Found existing container '${srh_name}', starting it..."
-          docker start ${srh_name}
+        elif [ "$(docker ps -a --filter "name=${.SRH_NAME}" -q)" ]; then
+          echo "Found existing container '${.SRH_NAME}', starting it..."
+          docker start ${.SRH_NAME}
         # Otherwise create and run the container
         else
-          echo "Creating and starting SRH container '${srh_name}' (image: ${srh_image})..."
-          docker run -d -p ${port}:80 --name ${srh_name} \
+          echo "Creating and starting SRH container '${.SRH_NAME}' (image: ${.SRH_IMAGE})..."
+          docker run -d -p ${port}:80 --name ${.SRH_NAME} \
             -e SRH_MODE=env \
             -e SRH_TOKEN="${token}" \
             -e SRH_CONNECTION_STRING="${conn}" \
             -e SRH_EMAIL="${email}" \
-            ${srh_image}
+            ${.SRH_IMAGE}
         fi
 
       - |-
@@ -127,11 +127,11 @@ tasks:
     desc: "Stop and remove the SRH container (if present)"
     cmds:
       - |-
-        if [ "$(docker ps -a --filter "name=${srh_name}" -q)" ]; then
-          echo "Stopping and removing '${srh_name}'..."
-          docker rm -f ${srh_name} || true
+        if [ "$(docker ps -a --filter "name=${.SRH_NAME}" -q)" ]; then
+          echo "Stopping and removing '${.SRH_NAME}'..."
+          docker rm -f ${.SRH_NAME} || true
         else
-          echo "No SRH container named '${srh_name}' found."
+          echo "No SRH container named '${.SRH_NAME}' found."
         fi
 
   logs-srh:
