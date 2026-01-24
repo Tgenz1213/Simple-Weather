@@ -23,7 +23,7 @@ $EnvState.EMAIL = ""
 #region Pre-Flight Checks
 if (-not (Test-Path $ExamplePath)) {
   Write-Host "[!] .env.example missing. Creating default..." -ForegroundColor Yellow
-  $DefaultTemplate = "ENV_MODE=srh`nSRH_TOKEN=`nSRH_CONNECTION_STRING=`nEMAIL=`nUPSTASH_REDIS_REST_URL=`nUPSTASH_REDIS_REST_TOKEN="
+  $DefaultTemplate = "ENV_MODE=srh`nSRH_TOKEN=`nSRH_CONNECTION_STRING=`nSRH_MODE=`nSRH_PORT=`nEMAIL=`nVITE_EMAIL=`nUPSTASH_REDIS_REST_URL=`nUPSTASH_REDIS_REST_TOKEN="
     
   # Write initial example without BOM
   $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
