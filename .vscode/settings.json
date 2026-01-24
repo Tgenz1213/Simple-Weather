@@ -30,6 +30,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "files.associations": {
-    "*.css": "tailwindcss",
-  }
+    "*.css": "tailwindcss"
+  },
+  "editor.formatOnSave": true
 }

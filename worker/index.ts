@@ -1,5 +1,6 @@
 import { Redis } from "@upstash/redis";
 import { InputSchema } from "../src/lib/schema";
+import { z } from "zod";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -15,6 +16,10 @@ function jsonResponse(body: unknown, status = 200) {
  * provided coordinates, ZIP (Zippopotam.us) or address (Census geocoder),
  * then queries weather.gov for a forecast. If Upstash Redis is configured,
  * responses are cached for 1 hour and served from cache when available.
+ *
+ * Accepts an optional `X-User-Email` request header containing a developer
+ * contact email. When present and a valid email address, the header is
+ * validated and propagated to upstream weather.gov requests as `X-User-Email`.
  */
 export default {
   async fetch(request: Request, env: Env) {
@@ -119,10 +124,20 @@ export default {
 
       try {
         const headers = {
-          // Weather.gov requires a User-Agent header
-          "User-Agent": "Simple-Weather (https://github.com/)",
+          // Weather.gov requires a User-Agent identifying the client; use repo URL so it's traceable.
+          "User-Agent":
+            "Simple-Weather (https://github.com/tgenz1213/Simple-Weather)",
           Accept: "application/geo+json,application/json",
         } as Record<string, string>;
+
+        // Validate developer contact email from header (X-User-Email) and propagate when valid
+        const userEmailFromHeader = request.headers.get("x-user-email");
+        if (userEmailFromHeader) {
+          const parsed = z.email().safeParse(userEmailFromHeader);
+          if (parsed.success) {
+            headers["X-User-Email"] = userEmailFromHeader;
+          }
+        }
 
         const pointsRes = await fetch(
           `https://api.weather.gov/points/${lat},${lon}`,

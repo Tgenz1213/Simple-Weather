@@ -1,0 +1,88 @@
+version: "3"
+
+# Automatically load environment variables
+dotenv: [".env.local", ".env"]
+
+vars:
+  SRH_NAME: '{{.SRH_NAME | default "sw-srh"}}'
+  SRH_IMAGE: '{{.SRH_IMAGE | default "hiett/serverless-redis-http:latest"}}'
+  SRH_PORT: "{{.SRH_PORT | default 8080}}"
+
+tasks:
+  env-setup:
+    desc: "Create .env.local interactively"
+    vars:
+      # Map Windows_NT to windows, otherwise use the OS as is
+      TARGET: '{{if eq .OS "Windows_NT"}}windows{{else}}{{.OS}}{{end}}'
+    cmds:
+      - task: env-setup:{{.TARGET}}
+
+  env-setup:windows:
+    internal: true
+    platforms: [windows]
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/setup-env.ps1
+
+  env-setup:linux: &posix
+    internal: true
+    platforms: [linux]
+    cmds:
+      - sh ./scripts/setup-env.sh
+
+  env-setup:darwin:
+    <<: *posix
+    platforms: [darwin]
+
+  dev:
+    desc: "Start development environment"
+    deps: [ensure-srh]
+    cmds:
+      - npm run dev
+
+  ensure-srh:
+    desc: "Start SRH container if not running"
+    # Only run if the container isn't already active
+    status:
+      - sh: test -n "$(docker ps --filter 'name={{.SRH_NAME}}' --filter 'status=running' -q)"
+    cmds:
+      - |
+        docker start "{{.SRH_NAME}}" 2>/dev/null || \
+        ( \
+          envfile=$(mktemp) && \
+          trap 'rm -f "$envfile"' EXIT && \
+          printf '%s\n' \
+            'SRH_MODE=env' \
+            "SRH_TOKEN={{.SRH_TOKEN}}" \
+            "SRH_CONNECTION_STRING={{.SRH_CONNECTION_STRING}}" \
+            "SRH_EMAIL={{.EMAIL}}" \
+          > "$envfile" && \
+          docker run -d -p "{{.SRH_PORT}}:80" --name "{{.SRH_NAME}}" --env-file "$envfile" "{{.SRH_IMAGE}}" \
+        )
+
+  wait-for-srh:
+    internal: true
+    desc: "Health check for SRH"
+    cmds:
+      - |
+        i=1
+        while [ "$i" -le 30 ]; do
+          if curl -s "http://localhost:{{.SRH_PORT}}/" > /dev/null; then
+            echo "SRH is up."
+            exit 0
+          fi
+          sleep 1
+          i=$((i + 1))
+        done
+        echo "SRH failed to start." >&2
+        exit 1
+
+  stop-srh:
+    desc: "Stop and remove SRH"
+    cmds:
+      - docker rm -f {{.SRH_NAME}}
+    ignore_error: true
+
+  logs-srh:
+    desc: "Tail SRH logs"
+    cmds:
+      - docker logs -f {{.SRH_NAME}}
