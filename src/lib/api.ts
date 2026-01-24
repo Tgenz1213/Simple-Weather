@@ -7,7 +7,13 @@ export type WeatherResponse = { source: string; data: unknown };
 
 /**
  * fetchWeather - POSTs `payload` to the worker API and returns the parsed response.
- * Throws an Error on network failure or non-2xx responses.
+ *
+ * When the environment variable VITE_EMAIL is set, its value is added as an
+ * X-User-Email request header on the outgoing request.
+ *
+ * @param payload - Form input sent to the worker API (/api/weather).
+ * @returns A promise resolving to the WeatherResponse returned by the worker.
+ * @throws Error on network failure or when the worker responds with a non-2xx status.
  */
 export async function fetchWeather(
   payload: FormInput,
