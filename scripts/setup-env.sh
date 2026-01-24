@@ -97,6 +97,21 @@ else
   fi
 fi
 
-echo ".env.local created/updated. Preview:"
-sed -n '1,20p' .env.local
+echo ".env.local created/updated. Preview (sensitive values redacted):"
+awk 'BEGIN{count=0}
+{ if(count>=20) exit
+  line=$0
+  if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) { print line; count++; next }
+  split(line,a,"=")
+  key=a[1]
+  ku=key
+  gsub(/^[ \t]+|[ \t]+$/,"",ku)
+  ku=toupper(ku)
+  if (ku ~ /(TOKEN|CONNECTION_STRING|REST_TOKEN|URL|PASSWORD|SECRET|KEY)/) {
+    print key"=[REDACTED]"
+  } else {
+    print line
+  }
+  count++
+}' .env.local
 exit 0
