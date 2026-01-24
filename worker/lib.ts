@@ -4,9 +4,23 @@ import { z } from "zod";
 // #region Utilities
 /**
  * Get cache key for an input object.
+ * Prefers ZIP, then address, then coordinates when both `lat` and `lon` exist.
+ * Falls back to a deterministic "invalid-input" key when insufficient data is provided.
  */
 export function getCacheKey(input: FormInput): string {
-  return `weather:${input.zip ?? input.address ?? `${input.lat},${input.lon}`}`;
+  if (input.zip) {
+    return `weather:${input.zip}`;
+  }
+
+  if (input.address) {
+    return `weather:${input.address}`;
+  }
+
+  if (input.lat != null && input.lon != null) {
+    return `weather:${input.lat},${input.lon}`;
+  }
+
+  return "weather:invalid-input";
 }
 
 /**
