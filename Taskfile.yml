@@ -20,12 +20,12 @@ tasks:
   env-setup:windows:
     internal: true
     cmds:
-      - powershell -NoProfile -ExecutionPolicy Bypass -File ./setup-env.ps1
+      - powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/setup-env.ps1
 
   env-setup:posix:
     internal: true
     cmds:
-      - sh ./setup-env.sh
+      - sh ./scripts/setup-env.sh
 
   dev:
     desc: "Start development environment"
