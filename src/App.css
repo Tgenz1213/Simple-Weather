@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss"; /* stylelint-disable-line */
 
 #root {
   max-width: 1280px;
