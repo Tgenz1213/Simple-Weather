@@ -61,7 +61,7 @@ if [ "$mode" = "upstash" ]; then
 
   # Prompt for a contact/email to include in headers or metadata
   printf "Enter EMAIL (leave empty to keep placeholder or existing value): "
-  read email
+  read -r email
   if [ -n "$email" ]; then
     awk -v e="$email" 'BEGIN{FS=OFS="="} $1=="EMAIL"{$2=e} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
     if ! grep -q '^VITE_EMAIL=' .env.local; then
