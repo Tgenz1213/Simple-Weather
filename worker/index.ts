@@ -1,6 +1,5 @@
 import { Redis } from "@upstash/redis";
 
-
 import {
   getCacheKey,
   validateInput,
@@ -43,8 +42,7 @@ export default {
         typeof (input as { lat?: unknown }).lat === "number" &&
         typeof (input as { lon?: unknown }).lon === "number";
       const zipVal = (input as { zip?: unknown }).zip;
-      const hasZip =
-        typeof zipVal === "string" && zipVal.trim().length > 0;
+      const hasZip = typeof zipVal === "string" && zipVal.trim().length > 0;
       const addressVal = (input as { address?: unknown }).address;
       const hasAddress =
         typeof addressVal === "string" && addressVal.trim().length > 0;
@@ -86,10 +84,12 @@ export default {
       if (!coords) {
         return jsonResponse({ error: "Unable to resolve location" }, 400);
       }
-      const { lat, lon } = coords; 
+      const { lat, lon } = coords;
 
       try {
-        const headers = buildWeatherHeaders(request.headers.get("x-user-email") ?? undefined);
+        const headers = buildWeatherHeaders(
+          request.headers.get("x-user-email") ?? undefined,
+        );
 
         const pointsRes = await fetch(
           `https://api.weather.gov/points/${lat},${lon}`,
