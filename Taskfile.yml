@@ -43,7 +43,7 @@ tasks:
     desc: "Start SRH container if not running"
     # Only run if the container isn't already active
     status:
-      - docker ps --filter "name={{.SRH_NAME}}" --filter "status=running" -q
+      - sh: test -n "$(docker ps --filter 'name={{.SRH_NAME}}' --filter 'status=running' -q)"
     cmds:
       - |
         docker start {{.SRH_NAME}} 2>/dev/null || \
