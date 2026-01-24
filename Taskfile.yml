@@ -11,21 +11,27 @@ vars:
 tasks:
   env-setup:
     desc: "Create .env.local interactively"
+    vars:
+      # Map Windows_NT to windows, otherwise use the OS as is
+      TARGET: '{{if eq .OS "Windows_NT"}}windows{{else}}{{.OS}}{{end}}'
     cmds:
-      - task: env-setup:windows
-        platforms: [windows]
-      - task: env-setup:posix
-        platforms: [linux, darwin]
+      - task: env-setup:{{.TARGET}}
 
   env-setup:windows:
     internal: true
+    platforms: [windows]
     cmds:
       - powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/setup-env.ps1
 
-  env-setup:posix:
+  env-setup:linux: &posix
     internal: true
+    platforms: [linux]
     cmds:
       - sh ./scripts/setup-env.sh
+
+  env-setup:darwin:
+    <<: *posix
+    platforms: [darwin]
 
   dev:
     desc: "Start development environment"
