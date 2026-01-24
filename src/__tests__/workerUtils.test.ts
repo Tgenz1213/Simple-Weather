@@ -76,4 +76,82 @@ describe("worker lib helpers", () => {
     const coords = await resolveCoords({ zip: "00000" }, fetcher);
     expect(coords).toBeNull();
   });
+
+  it("getCacheKey prefers zip over address when both present", () => {
+    expect(getCacheKey({ zip: "11111", address: "1 A St" })).toBe(
+      "weather:11111",
+    );
+  });
+
+  it("validateInput rejects too-long address and short zip", () => {
+    const long = "a".repeat(201);
+    expect(validateInput({ address: long })).toBeNull();
+    expect(validateInput({ zip: "1" })).toBeNull();
+  });
+
+  it("buildWeatherHeaders handles undefined or empty email", () => {
+    expect(buildWeatherHeaders(undefined)["X-User-Email"]).toBeUndefined();
+    expect(buildWeatherHeaders("")["X-User-Email"]).toBeUndefined();
+  });
+
+  it("extractForecastUrl returns null for malformed points objects", () => {
+    expect(extractForecastUrl(null)).toBeNull();
+    expect(extractForecastUrl({ properties: { forecast: 123 } })).toBeNull();
+    expect(extractForecastUrl({ properties: {} })).toBeNull();
+  });
+
+  it("resolveCoords prefers direct lat/lon and does not call fetch", async () => {
+    const fetcher = async () => {
+      throw new Error("should not call fetch");
+    };
+    const coords = await resolveCoords(
+      { lat: 5, lon: 6, zip: "99999", address: "x" },
+      fetcher,
+    );
+    expect(coords).toEqual({ lat: 5, lon: 6 });
+  });
+
+  it("resolveCoords falls back from ZIP to address when ZIP has no places", async () => {
+    const fetcher = async (input: RequestInfo) => {
+      const url = String(input);
+      if (url.includes("zippopotam.us")) {
+        return { ok: true, json: async () => ({}) } as unknown as Response; // no places
+      }
+      // census returns coords
+      return {
+        ok: true,
+        json: async () => ({
+          result: { addressMatches: [{ coordinates: { x: 77, y: 88 } }] },
+        }),
+      } as unknown as Response;
+    };
+
+    const coords = await resolveCoords(
+      { zip: "00000", address: "1 Main" },
+      fetcher,
+    );
+    expect(coords).toEqual({ lat: 88, lon: 77 });
+  });
+
+  it("resolveCoords returns null when all geocoding sources fail or return invalid data", async () => {
+    const fetcher = async (input: RequestInfo) => {
+      const url = String(input);
+      if (url.includes("zippopotam.us")) {
+        return {
+          ok: true,
+          json: async () => ({ places: [{ latitude: undefined as unknown }] }),
+        } as unknown as Response;
+      }
+      if (url.includes("geocoding.geo.census.gov")) {
+        return {
+          ok: true,
+          json: async () => ({ result: { addressMatches: [] } }),
+        } as unknown as Response;
+      }
+      return { ok: false } as unknown as Response;
+    };
+
+    const coords = await resolveCoords({ zip: "00000", address: "x" }, fetcher);
+    expect(coords).toBeNull();
+  });
 });
