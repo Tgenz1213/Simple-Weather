@@ -39,6 +39,19 @@ export default {
         return jsonResponse({ error: "Invalid input" }, 400);
       }
 
+      const hasCoords =
+        typeof (input as { lat?: unknown }).lat === "number" &&
+        typeof (input as { lon?: unknown }).lon === "number";
+      const hasZip =
+        typeof (input as { zip?: unknown }).zip === "string" &&
+        (input as { zip?: string }).zip.trim().length > 0;
+      const hasAddress =
+        typeof (input as { address?: unknown }).address === "string" &&
+        (input as { address?: string }).address.trim().length > 0;
+
+      if (!hasCoords && !hasZip && !hasAddress) {
+        return jsonResponse({ error: "Location is required" }, 400);
+      }
       const cacheKey = getCacheKey(input);
 
       let redis: Redis | null = null;
