@@ -14,8 +14,11 @@ export async function fetchWeather(
 ): Promise<WeatherResponse> {
   let res: Response;
   try {
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    const email = (import.meta.env.VITE_EMAIL as string | undefined) || undefined;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const email =
+      (import.meta.env.VITE_EMAIL as string | undefined) || undefined;
     if (email) {
       headers["X-User-Email"] = email;
     }

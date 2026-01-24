@@ -120,7 +120,8 @@ export default {
       try {
         const headers = {
           // Weather.gov requires a User-Agent identifying the client; use repo URL so it's traceable.
-          "User-Agent": "Simple-Weather (https://github.com/tgenz1213/Simple-Weather)",
+          "User-Agent":
+            "Simple-Weather (https://github.com/tgenz1213/Simple-Weather)",
           Accept: "application/geo+json,application/json",
         } as Record<string, string>;
 
