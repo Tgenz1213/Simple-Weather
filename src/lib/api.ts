@@ -14,9 +14,15 @@ export async function fetchWeather(
 ): Promise<WeatherResponse> {
   let res: Response;
   try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    const email = (import.meta.env.VITE_EMAIL as string | undefined) || undefined;
+    if (email) {
+      headers["X-User-Email"] = email;
+    }
+
     res = await fetch("/api/weather", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
   } catch (err: unknown) {

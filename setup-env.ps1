@@ -54,7 +54,15 @@ if ($envMode -eq 'upstash') {
 
   # Prompt for a contact/email to include in headers or metadata
   $em = Read-Host "Enter EMAIL (leave empty to keep placeholder or existing value)"
-  if ($em) { (Get-Content .env.local) -replace '^EMAIL=.*', "EMAIL=$em" | Set-Content .env.local }
+  if ($em) {
+    (Get-Content .env.local) -replace '^EMAIL=.*', "EMAIL=$em" | Set-Content .env.local
+    # Mirror into VITE_EMAIL for client usage
+    if ((Get-Content .env.local) -match '^VITE_EMAIL=') {
+      (Get-Content .env.local) -replace '^VITE_EMAIL=.*', "VITE_EMAIL=$em" | Set-Content .env.local
+    } else {
+      Add-Content -Path .env.local -Value "VITE_EMAIL=$em"
+    }
+  }
 } else {
   Write-Host "ENV_MODE=$envMode selected. Please enter SRH values."
   $token = Read-Host "Enter SRH_TOKEN (leave empty to keep placeholder or existing value)"
@@ -64,8 +72,15 @@ if ($envMode -eq 'upstash') {
 
   # Prompt for a contact/email to include in headers or metadata
   $em2 = Read-Host "Enter EMAIL (leave empty to keep placeholder or existing value)"
-  if ($em2) { (Get-Content .env.local) -replace '^EMAIL=.*', "EMAIL=$em2" | Set-Content .env.local }
-}
+  if ($em2) {
+    (Get-Content .env.local) -replace '^EMAIL=.*', "EMAIL=$em2" | Set-Content .env.local
+    if ((Get-Content .env.local) -match '^VITE_EMAIL=') {
+      (Get-Content .env.local) -replace '^VITE_EMAIL=.*', "VITE_EMAIL=$em2" | Set-Content .env.local
+    } else {
+      Add-Content -Path .env.local -Value "VITE_EMAIL=$em2"
+    }
+  }
+} 
 
 Write-Host ".env.local created/updated. Preview:"
 Get-Content .env.local | Select-Object -First 20 | ForEach-Object { Write-Host $_ }

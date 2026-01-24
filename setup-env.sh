@@ -64,6 +64,11 @@ if [ "$mode" = "upstash" ]; then
   read email
   if [ -n "$email" ]; then
     awk -v e="$email" 'BEGIN{FS=OFS="="} $1=="EMAIL"{$2=e} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
+    if ! grep -q '^VITE_EMAIL=' .env.local; then
+      echo "VITE_EMAIL=$email" >> .env.local
+    else
+      awk -v e="$email" 'BEGIN{FS=OFS="="} $1=="VITE_EMAIL"{$2=e} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
+    fi
   fi
 else
   echo "ENV_MODE=${mode} selected. Please enter SRH values."
@@ -84,6 +89,11 @@ else
   read email
   if [ -n "$email" ]; then
     awk -v e="$email" 'BEGIN{FS=OFS="="} $1=="EMAIL"{$2=e} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
+    if ! grep -q '^VITE_EMAIL=' .env.local; then
+      echo "VITE_EMAIL=$email" >> .env.local
+    else
+      awk -v e="$email" 'BEGIN{FS=OFS="="} $1=="VITE_EMAIL"{$2=e} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
+    fi
   fi
 fi
 
