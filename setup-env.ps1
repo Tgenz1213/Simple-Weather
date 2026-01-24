@@ -11,6 +11,7 @@ SRH_MODE=env
 SRH_TOKEN=your_token_here
 SRH_CONNECTION_STRING=redis://localhost:6379
 SRH_PORT=8080
+EMAIL=your_email@example.com
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 "@ | Out-File -Encoding UTF8 .env.example
@@ -50,12 +51,20 @@ if ($envMode -eq 'upstash') {
   if ($upr) { (Get-Content .env.local) -replace '^UPSTASH_REDIS_REST_URL=.*', "UPSTASH_REDIS_REST_URL=$upr" | Set-Content .env.local }
   $upt = Read-Host "Enter UPSTASH_REDIS_REST_TOKEN (leave empty to keep placeholder or existing value)"
   if ($upt) { (Get-Content .env.local) -replace '^UPSTASH_REDIS_REST_TOKEN=.*', "UPSTASH_REDIS_REST_TOKEN=$upt" | Set-Content .env.local }
+
+  # Prompt for a contact/email to include in headers or metadata
+  $em = Read-Host "Enter EMAIL (leave empty to keep placeholder or existing value)"
+  if ($em) { (Get-Content .env.local) -replace '^EMAIL=.*', "EMAIL=$em" | Set-Content .env.local }
 } else {
   Write-Host "ENV_MODE=$envMode selected. Please enter SRH values."
   $token = Read-Host "Enter SRH_TOKEN (leave empty to keep placeholder or existing value)"
   if ($token) { (Get-Content .env.local) -replace '^SRH_TOKEN=.*', "SRH_TOKEN=$token" | Set-Content .env.local }
   $conn = Read-Host "Enter SRH_CONNECTION_STRING (leave empty to keep placeholder or existing value)"
   if ($conn) { (Get-Content .env.local) -replace '^SRH_CONNECTION_STRING=.*', "SRH_CONNECTION_STRING=$conn" | Set-Content .env.local }
+
+  # Prompt for a contact/email to include in headers or metadata
+  $em2 = Read-Host "Enter EMAIL (leave empty to keep placeholder or existing value)"
+  if ($em2) { (Get-Content .env.local) -replace '^EMAIL=.*', "EMAIL=$em2" | Set-Content .env.local }
 }
 
 Write-Host ".env.local created/updated. Preview:"

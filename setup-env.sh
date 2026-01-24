@@ -13,6 +13,7 @@ SRH_MODE=env
 SRH_TOKEN=your_token_here
 SRH_CONNECTION_STRING=redis://localhost:6379
 SRH_PORT=8080
+EMAIL=your_email@example.com
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 EOF
@@ -57,6 +58,13 @@ if [ "$mode" = "upstash" ]; then
   if [ -n "$upt" ]; then
     awk -v v="$upt" 'BEGIN{FS=OFS="="} $1=="UPSTASH_REDIS_REST_TOKEN"{$2=v} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
   fi
+
+  # Prompt for a contact/email to include in headers or metadata
+  printf "Enter EMAIL (leave empty to keep placeholder or existing value): "
+  read email
+  if [ -n "$email" ]; then
+    awk -v e="$email" 'BEGIN{FS=OFS="="} $1=="EMAIL"{$2=e} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
+  fi
 else
   echo "ENV_MODE=${mode} selected. Please enter SRH values."
   printf "Enter SRH_TOKEN (leave empty to keep placeholder or existing value): "
@@ -69,6 +77,13 @@ else
   read conn
   if [ -n "$conn" ]; then
     awk -v con="$conn" 'BEGIN{FS=OFS="="} $1=="SRH_CONNECTION_STRING"{$2=con} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
+  fi
+
+  # Prompt for a contact/email to include in headers or metadata
+  printf "Enter EMAIL (leave empty to keep placeholder or existing value): "
+  read email
+  if [ -n "$email" ]; then
+    awk -v e="$email" 'BEGIN{FS=OFS="="} $1=="EMAIL"{$2=e} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
   fi
 fi
 

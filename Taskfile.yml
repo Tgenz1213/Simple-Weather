@@ -14,6 +14,7 @@ vars:
   # fallback defaults if .env.local is missing values
   srh_token: your_token_here
   srh_connection_string: "redis://localhost:6379"
+  srh_email: ""
 
 # Interactive task to create .env.local from .env.example
 tasks:
@@ -80,6 +81,7 @@ tasks:
         port=${SRH_PORT:-${srh_port}}
         token=${SRH_TOKEN:-${srh_token}}
         conn=${SRH_CONNECTION_STRING:-${srh_connection_string}}
+        email=${EMAIL:-${srh_email}}
 
         echo "ENV_MODE=${mode} — using local SRH. Proceeding to start SRH container '${srh_name}' on port ${port}..."
 
@@ -97,6 +99,7 @@ tasks:
             -e SRH_MODE=env \
             -e SRH_TOKEN="${token}" \
             -e SRH_CONNECTION_STRING="${conn}" \
+            -e SRH_EMAIL="${email}" \
             ${srh_image}
         fi
 
@@ -104,7 +107,12 @@ tasks:
         echo "If you are using the placeholder token 'your_token_here', please run 'task env-setup' to set a secure token." 
         echo "Waiting for SRH to accept HTTP connections (timeout 30s)..."
         i=0
-        until curl -sS -f "http://localhost:${port}/" >/dev/null 2>&1; do
+        until \
+          if [ -n "${email}" ]; then \
+            curl -sS -f -H "X-User-Email: ${email}" "http://localhost:${port}/" >/dev/null 2>&1; \
+          else \
+            curl -sS -f "http://localhost:${port}/" >/dev/null 2>&1; \
+          fi; do
           i=$((i+1))
           if [ $i -ge 30 ]; then
             echo "Timed out waiting for SRH to be ready" >&2
