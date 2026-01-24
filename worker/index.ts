@@ -1,5 +1,6 @@
 import { Redis } from "@upstash/redis";
 import { InputSchema } from "../src/lib/schema";
+import { z } from "zod";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -125,10 +126,13 @@ export default {
           Accept: "application/geo+json,application/json",
         } as Record<string, string>;
 
-        // Propagate user email header if provided by the client
-        const userEmail = request.headers.get("x-user-email");
-        if (userEmail) {
-          headers["X-User-Email"] = userEmail;
+        // Validate developer contact email from header (X-User-Email) and propagate when valid
+        const userEmailFromHeader = request.headers.get("x-user-email");
+        if (userEmailFromHeader) {
+          const parsed = z.email().safeParse(userEmailFromHeader);
+          if (parsed.success) {
+            headers["X-User-Email"] = userEmailFromHeader;
+          }
         }
 
         const pointsRes = await fetch(
