@@ -74,7 +74,11 @@ export async function resolveCoords(
         };
         const place = j.places && j.places[0];
         if (place?.latitude && place?.longitude) {
-          return { lat: Number(place.latitude), lon: Number(place.longitude) };
+          const lat = Number(place.latitude);
+          const lon = Number(place.longitude);
+          if (Number.isFinite(lat) && Number.isFinite(lon)) {
+            return { lat, lon };
+          }
         }
       }
     } catch {
