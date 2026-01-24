@@ -14,6 +14,7 @@ SRH_TOKEN=your_token_here
 SRH_CONNECTION_STRING=redis://localhost:6379
 SRH_PORT=8080
 EMAIL=your_email@example.com
+VITE_EMAIL=your_email@example.com
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 EOF
