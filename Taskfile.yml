@@ -46,14 +46,18 @@ tasks:
       - sh: test -n "$(docker ps --filter 'name={{.SRH_NAME}}' --filter 'status=running' -q)"
     cmds:
       - |
-        docker start {{.SRH_NAME}} 2>/dev/null || \
-        docker run -d -p {{.SRH_PORT}}:80 --name {{.SRH_NAME}} \
-          -e SRH_MODE=env \
-          -e SRH_TOKEN="{{.SRH_TOKEN}}" \
-          -e SRH_CONNECTION_STRING="{{.SRH_CONNECTION_STRING}}" \
-          -e SRH_EMAIL="{{.EMAIL}}" \
-          {{.SRH_IMAGE}}
-      - task: wait-for-srh
+        docker start "{{.SRH_NAME}}" 2>/dev/null || \
+        ( \
+          envfile=$(mktemp) && \
+          trap 'rm -f "$envfile"' EXIT && \
+          printf '%s\n' \
+            'SRH_MODE=env' \
+            "SRH_TOKEN={{.SRH_TOKEN}}" \
+            "SRH_CONNECTION_STRING={{.SRH_CONNECTION_STRING}}" \
+            "SRH_EMAIL={{.EMAIL}}" \
+          > "$envfile" && \
+          docker run -d -p "{{.SRH_PORT}}:80" --name "{{.SRH_NAME}}" --env-file "$envfile" "{{.SRH_IMAGE}}" \
+        )
 
   wait-for-srh:
     internal: true
