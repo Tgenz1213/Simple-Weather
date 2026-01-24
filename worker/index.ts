@@ -126,13 +126,9 @@ export default {
         } as Record<string, string>;
 
         // Propagate user email header if provided by the client
-        try {
-          const userEmail = request.headers.get("x-user-email");
-          if (userEmail) {
-            headers["X-User-Email"] = userEmail;
-          }
-        } catch {
-          // ignore if headers can't be read
+        const userEmail = request.headers.get("x-user-email");
+        if (userEmail) {
+          headers["X-User-Email"] = userEmail;
         }
 
         const pointsRes = await fetch(
