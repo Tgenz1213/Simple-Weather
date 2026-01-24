@@ -22,7 +22,7 @@ fi
 # Confirm overwrite if .env.local exists
 if [ -f .env.local ]; then
   printf ".env.local already exists. Overwrite? (y/N): "
-  read ans
+  read -r ans
   if [ "$ans" != "y" ]; then
     echo "Keeping existing .env.local"
     exit 0
@@ -33,7 +33,7 @@ cp .env.example .env.local
 
 # Prompt for ENV_MODE
 printf "Choose ENV_MODE (srh/upstash) [srh]: "
-read mode
+read -r mode
 if [ -n "$mode" ]; then
   awk -v m="$mode" 'BEGIN{FS=OFS="="} $1=="ENV_MODE"{$2=m} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
 fi
@@ -48,13 +48,13 @@ mode=$(echo "${ENV_MODE:-srh}" | tr '[:upper:]' '[:lower:]')
 if [ "$mode" = "upstash" ]; then
   echo "ENV_MODE=upstash selected. Please enter Upstash values."
   printf "Enter UPSTASH_REDIS_REST_URL (leave empty to keep placeholder or existing value): "
-  read upr
+  read -r upr
   if [ -n "$upr" ]; then
     awk -v v="$upr" 'BEGIN{FS=OFS="="} $1=="UPSTASH_REDIS_REST_URL"{$2=v} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
   fi
 
   printf "Enter UPSTASH_REDIS_REST_TOKEN (leave empty to keep placeholder or existing value): "
-  read upt
+  read -r upt
   if [ -n "$upt" ]; then
     awk -v v="$upt" 'BEGIN{FS=OFS="="} $1=="UPSTASH_REDIS_REST_TOKEN"{$2=v} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
   fi
@@ -73,13 +73,13 @@ if [ "$mode" = "upstash" ]; then
 else
   echo "ENV_MODE=${mode} selected. Please enter SRH values."
   printf "Enter SRH_TOKEN (leave empty to keep placeholder or existing value): "
-  read token
+  read -r token
   if [ -n "$token" ]; then
     awk -v tok="$token" 'BEGIN{FS=OFS="="} $1=="SRH_TOKEN"{$2=tok} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
   fi
 
   printf "Enter SRH_CONNECTION_STRING (leave empty to keep placeholder or existing value): "
-  read conn
+  read -r conn
   if [ -n "$conn" ]; then
     awk -v con="$conn" 'BEGIN{FS=OFS="="} $1=="SRH_CONNECTION_STRING"{$2=con} {print}' .env.local > .env.local.tmp && mv .env.local.tmp .env.local
   fi
