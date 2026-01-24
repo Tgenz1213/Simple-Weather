@@ -1,140 +1,76 @@
 version: "3"
 
-# Taskfile for Simple-Weather project
-# - `task dev` ensures SRH (serverless-redis-http) container is running and starts the dev server (npm run dev)
-# - `task env-setup` creates `.env.local` from `.env.example` and prompts for values
-# - `task ensure-srh` ensures the SRH container exists and is running (reads values from `.env.local`)
-# - `task stop-srh` removes the SRH container
-# - `task logs-srh` follows SRH container logs
+# Automatically load environment variables
+dotenv: [".env.local", ".env"]
 
 vars:
-  srh_name: sw-srh
-  srh_image: hiett/serverless-redis-http:latest
-  srh_port: 8080
-  # fallback defaults if .env.local is missing values
-  srh_token: your_token_here
-  srh_connection_string: "redis://localhost:6379"
-  srh_email: ""
+  SRH_NAME: '{{.SRH_NAME | default "sw-srh"}}'
+  SRH_IMAGE: '{{.SRH_IMAGE | default "hiett/serverless-redis-http:latest"}}'
+  SRH_PORT: "{{.SRH_PORT | default 8080}}"
 
-# Interactive task to create .env.local from .env.example
 tasks:
   env-setup:
-    desc: "Create .env.local from .env.example interactively (runs platform-specific script)"
+    desc: "Create .env.local interactively"
     cmds:
-      - |-
-        echo "Detecting available shell to run the environment setup script..."
-        if command -v pwsh >/dev/null 2>&1; then
-          echo "Found PowerShell Core (pwsh); running setup-env.ps1"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File ./setup-env.ps1
-        elif command -v powershell >/dev/null 2>&1; then
-          echo "Found Windows PowerShell; running setup-env.ps1"
-          powershell -NoProfile -ExecutionPolicy Bypass -File ./setup-env.ps1
-        elif command -v sh >/dev/null 2>&1; then
-          echo "Found sh; running setup-env.sh"
-          sh ./setup-env.sh
-        else
-          echo "No suitable shell found. Please run ./setup-env.sh (POSIX) or ./setup-env.ps1 (PowerShell) manually." >&2
-          exit 1
-        fi
+      - task: env-setup:windows
+        platforms: [windows]
+      - task: env-setup:posix
+        platforms: [linux, darwin]
+
+  env-setup:windows:
+    internal: true
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -File ./setup-env.ps1
+
+  env-setup:posix:
+    internal: true
+    cmds:
+      - sh ./setup-env.sh
 
   dev:
-    desc: "Start SRH if needed and run dev server (npm run dev)"
-    deps:
-      - ensure-srh
+    desc: "Start development environment"
+    deps: [ensure-srh]
     cmds:
       - npm run dev
 
   ensure-srh:
-    desc: "Ensure the configured Redis backend is ready (SRH docker or Upstash), reads .env.local"
+    desc: "Start SRH container if not running"
+    # Only run if the container isn't already active
+    status:
+      - docker ps --filter "name={{.SRH_NAME}}" --filter "status=running" -q
     cmds:
-      - |-
-        echo "Loading .env.local..."
-        if [ -f .env.local ]; then
-          set -a
-          . ./.env.local
-          set +a
-        else
-          echo ".env.local not found. Run 'task env-setup' to create it." >&2
-          exit 1
-        fi
+      - |
+        docker start {{.SRH_NAME}} 2>/dev/null || \
+        docker run -d -p {{.SRH_PORT}}:80 --name {{.SRH_NAME}} \
+          -e SRH_MODE=env \
+          -e SRH_TOKEN="{{.SRH_TOKEN}}" \
+          -e SRH_CONNECTION_STRING="{{.SRH_CONNECTION_STRING}}" \
+          -e SRH_EMAIL="{{.EMAIL}}" \
+          {{.SRH_IMAGE}}
+      - task: wait-for-srh
 
-        # Normalize ENV_MODE; default to 'srh' for local development
-        mode=$(echo "${ENV_MODE:-srh}" | tr '[:upper:]' '[:lower:]')
-        if [ "$mode" = "development" ] || [ -z "$mode" ]; then
-          echo "ENV_MODE set to 'development' or empty — treating as 'srh' for local development."
-          mode=srh
-        fi
-
-        if [ "$mode" = "upstash" ]; then
-          echo "ENV_MODE=upstash: validating Upstash environment variables..."
-          if [ -z "${UPSTASH_REDIS_REST_URL}" ] || [ -z "${UPSTASH_REDIS_REST_TOKEN}" ]; then
-            echo "Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN in .env.local" >&2
-            echo "Run 'task env-setup' to configure Upstash variables." >&2
-            exit 1
-          fi
-          echo "Upstash variables present. Using Upstash at ${UPSTASH_REDIS_REST_URL}"
-          echo "No local SRH container will be started when using Upstash."
-          exit 0
-        fi
-
-        # Default to SRH behavior
-        port=${SRH_PORT:-${.SRH_PORT}}
-        token=${SRH_TOKEN:-${.SRH_TOKEN}}
-        conn=${SRH_CONNECTION_STRING:-${.SRH_CONNECTION_STRING}}
-        email=${EMAIL:-${.EMAIL}}
-
-        echo "ENV_MODE=${mode} — using local SRH. Proceeding to start SRH container '${.SRH_NAME}' on port ${port}..."
-
-        # If already running, do nothing
-        if [ "$(docker ps --filter "name=${.SRH_NAME}" --filter "status=running" -q)" ]; then
-          echo "SRH container '${.SRH_NAME}' already running"
-        # If container exists but is stopped, start it
-        elif [ "$(docker ps -a --filter "name=${.SRH_NAME}" -q)" ]; then
-          echo "Found existing container '${.SRH_NAME}', starting it..."
-          docker start ${.SRH_NAME}
-        # Otherwise create and run the container
-        else
-          echo "Creating and starting SRH container '${.SRH_NAME}' (image: ${.SRH_IMAGE})..."
-          docker run -d -p ${port}:80 --name ${.SRH_NAME} \
-            -e SRH_MODE=env \
-            -e SRH_TOKEN="${token}" \
-            -e SRH_CONNECTION_STRING="${conn}" \
-            -e SRH_EMAIL="${email}" \
-            ${.SRH_IMAGE}
-        fi
-
-      - |-
-        echo "If you are using the placeholder token 'your_token_here', please run 'task env-setup' to set a secure token." 
-        echo "Waiting for SRH to accept HTTP connections (timeout 30s)..."
-        i=0
-        until \
-          if [ -n "${email}" ]; then \
-            curl -sS -f -H "X-User-Email: ${email}" "http://localhost:${port}/" >/dev/null 2>&1; \
-          else \
-            curl -sS -f "http://localhost:${port}/" >/dev/null 2>&1; \
-          fi; do
-          i=$((i+1))
-          if [ $i -ge 30 ]; then
-            echo "Timed out waiting for SRH to be ready" >&2
-            echo "Try 'task logs-srh' to inspect container logs." >&2
-            exit 1
+  wait-for-srh:
+    internal: true
+    desc: "Health check for SRH"
+    cmds:
+      - |
+        for i in $(seq 1 30); do
+          if curl -s "http://localhost:{{.SRH_PORT}}/" > /dev/null; then
+            echo "SRH is up."
+            exit 0
           fi
           sleep 1
         done
-        echo "SRH is ready and responding on http://localhost:${port}/"
+        echo "SRH failed to start." >&2
+        exit 1
 
   stop-srh:
-    desc: "Stop and remove the SRH container (if present)"
+    desc: "Stop and remove SRH"
     cmds:
-      - |-
-        if [ "$(docker ps -a --filter "name=${.SRH_NAME}" -q)" ]; then
-          echo "Stopping and removing '${.SRH_NAME}'..."
-          docker rm -f ${.SRH_NAME} || true
-        else
-          echo "No SRH container named '${.SRH_NAME}' found."
-        fi
+      - docker rm -f {{.SRH_NAME}}
+    ignore_error: true
 
   logs-srh:
-    desc: "Follow SRH logs"
+    desc: "Tail SRH logs"
     cmds:
-      - docker logs -f ${srh_name}
+      - docker logs -f {{.SRH_NAME}}
