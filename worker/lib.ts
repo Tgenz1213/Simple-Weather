@@ -36,7 +36,7 @@ export function validateInput(raw: unknown): FormInput | null {
  * Build headers for weather.gov requests. Includes `X-User-Email` when a valid
  * email is provided.
  */
-export function buildWeatherHeaders(userEmail?: string) {
+export function buildWeatherHeaders(userEmail?: string): Record<string, string> {
   const headers: Record<string, string> = {
     "User-Agent":
       "Simple-Weather (https://github.com/tgenz1213/Simple-Weather)",
