@@ -42,12 +42,12 @@ export default {
       const hasCoords =
         typeof (input as { lat?: unknown }).lat === "number" &&
         typeof (input as { lon?: unknown }).lon === "number";
+      const zipVal = (input as { zip?: unknown }).zip;
       const hasZip =
-        typeof (input as { zip?: unknown }).zip === "string" &&
-        (input as { zip?: string }).zip.trim().length > 0;
+        typeof zipVal === "string" && zipVal.trim().length > 0;
+      const addressVal = (input as { address?: unknown }).address;
       const hasAddress =
-        typeof (input as { address?: unknown }).address === "string" &&
-        (input as { address?: string }).address.trim().length > 0;
+        typeof addressVal === "string" && addressVal.trim().length > 0;
 
       if (!hasCoords && !hasZip && !hasAddress) {
         return jsonResponse({ error: "Location is required" }, 400);
