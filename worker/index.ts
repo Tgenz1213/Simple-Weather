@@ -119,10 +119,20 @@ export default {
 
       try {
         const headers = {
-          // Weather.gov requires a User-Agent header
-          "User-Agent": "Simple-Weather (https://github.com/)",
+          // Weather.gov requires a User-Agent identifying the client; use repo URL so it's traceable.
+          "User-Agent": "Simple-Weather (https://github.com/tgenz1213/Simple-Weather)",
           Accept: "application/geo+json,application/json",
         } as Record<string, string>;
+
+        // Propagate user email header if provided by the client
+        try {
+          const userEmail = request.headers.get("x-user-email");
+          if (userEmail) {
+            headers["X-User-Email"] = userEmail;
+          }
+        } catch {
+          // ignore if headers can't be read
+        }
 
         const pointsRes = await fetch(
           `https://api.weather.gov/points/${lat},${lon}`,
