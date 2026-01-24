@@ -16,6 +16,10 @@ function jsonResponse(body: unknown, status = 200) {
  * provided coordinates, ZIP (Zippopotam.us) or address (Census geocoder),
  * then queries weather.gov for a forecast. If Upstash Redis is configured,
  * responses are cached for 1 hour and served from cache when available.
+ *
+ * Accepts an optional `X-User-Email` request header containing a developer
+ * contact email. When present and a valid email address, the header is
+ * validated and propagated to upstream weather.gov requests as `X-User-Email`.
  */
 export default {
   async fetch(request: Request, env: Env) {
