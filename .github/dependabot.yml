@@ -45,6 +45,10 @@ updates:
       type-definitions:
         patterns:
           - "@types/*"
+        exclude-patterns:
+          - "@types/react"
+          - "@types/react-dom"
+          - "@types/jsdom"
       other-minor-patch:
         patterns:
           - "*"
