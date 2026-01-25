@@ -1,24 +1,20 @@
-name: CI
+name: CI/CD
 
 on:
   push:
     branches: ["main"]
-  pull_request:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  quality:
+  call-quality:
+    uses: ./.github/workflows/quality.yml
+
+  deploy:
+    needs: call-quality
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        command:
-          - "run eslint"
-          - "run knip:production"
-          - "run test -- --run"
-          - "run build"
     steps:
       - uses: actions/checkout@v5
 
@@ -31,9 +27,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Prettier check
-        if: matrix.command == 'run eslint'
-        run: npx prettier --check .
-
-      - name: Run ${{ matrix.command }}
-        run: npm ${{ matrix.command }}
+      - name: Deploy to Cloudflare
+        run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
