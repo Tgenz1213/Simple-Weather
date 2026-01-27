@@ -6,6 +6,7 @@ import {
   extractForecastUrl,
   resolveCoords,
 } from "../../worker/lib";
+import { URL } from "url";
 
 describe("worker lib helpers", () => {
   it("getCacheKey uses zip/address/coords in that order", () => {
@@ -135,14 +136,14 @@ describe("worker lib helpers", () => {
 
   it("resolveCoords returns null when all geocoding sources fail or return invalid data", async () => {
     const fetcher = async (input: RequestInfo) => {
-      const url = String(input);
-      if (url.includes("zippopotam.us")) {
+      const url = new URL(String(input));
+      if (url.hostname === "api.zippopotam.us") {
         return {
           ok: true,
           json: async () => ({ places: [{ latitude: undefined as unknown }] }),
         } as unknown as Response;
       }
-      if (url.includes("geocoding.geo.census.gov")) {
+      if (url.hostname === "geocoding.geo.census.gov") {
         return {
           ok: true,
           json: async () => ({ result: { addressMatches: [] } }),
