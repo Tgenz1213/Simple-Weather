@@ -35,7 +35,7 @@ export async function fetchWeather(
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(`Network error: ${msg}`);
+    throw new Error(`Network error: ${msg}`, { cause: err });
   }
 
   if (!res.ok) {
