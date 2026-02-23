@@ -28,13 +28,13 @@
     "@vitest/coverage-v8": "^4.0.18",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "^4.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.25.0",
+    "@cloudflare/vite-plugin": "^1.25.2",
     "@eslint/js": "^10.0.1",
-    "@tailwindcss/vite": "^4.1.18",
+    "@tailwindcss/vite": "^4.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/jsdom": "^27.0.0",
