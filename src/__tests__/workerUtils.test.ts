@@ -6,7 +6,6 @@ import {
   extractForecastUrl,
   resolveCoords,
 } from "../../worker/lib";
-import { URL } from "url";
 
 describe("worker lib helpers", () => {
   it("getCacheKey uses zip/address/coords in that order", () => {
