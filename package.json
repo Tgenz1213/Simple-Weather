@@ -26,8 +26,8 @@
     "@tanstack/react-query": "^5.100.9",
     "@upstash/redis": "^1.37.0",
     "@vitest/coverage-v8": "^4.1.5",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "tailwindcss": "^4.2.4",
     "zod": "^4.4.3"
   },
