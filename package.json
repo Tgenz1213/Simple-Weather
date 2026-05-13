@@ -28,13 +28,13 @@
     "@vitest/coverage-v8": "^4.1.5",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "tailwindcss": "^4.2.4",
+    "tailwindcss": "^4.3.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.35.0",
+    "@cloudflare/vite-plugin": "^1.36.4",
     "@eslint/js": "^10.0.1",
-    "@tailwindcss/vite": "^4.2.4",
+    "@tailwindcss/vite": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/jsdom": "^28.0.1",
@@ -50,7 +50,7 @@
     "stylelint-config-standard": "^40.0.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.10",
+    "vite": "^8.0.12",
     "vitest": "^4.0.18",
     "wrangler": "^4.60.0"
   }
