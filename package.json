@@ -43,7 +43,7 @@
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react-swc": "^4.3.2",
     "eslint": "^10.8.0",
-    "jsdom": "^30.0.0",
+    "jsdom": "^30.0.1",
     "knip": "^6.29.0",
     "prettier": "3.9.6",
     "stylelint": "^17.14.1",
