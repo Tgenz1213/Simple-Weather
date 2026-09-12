@@ -24,12 +24,12 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.8",
-    "@upstash/redis": "^1.38.0",
+    "@upstash/redis": "^1.38.4",
     "@vitest/coverage-v8": "^4.1.10",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwindcss": "^4.3.3",
-    "zod": "^4.4.3"
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.53.0",
